@@ -1,4 +1,4 @@
-package temp;
+package org.popov.belezirev.gui;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;

@@ -1,4 +1,4 @@
-package temp;
+package org.popov.belezirev.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;

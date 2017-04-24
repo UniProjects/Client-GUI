@@ -1,4 +1,4 @@
-package temp;
+package org.popov.belezirev.gui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
