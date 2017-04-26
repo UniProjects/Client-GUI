@@ -39,6 +39,7 @@ public class ClientGUI {
 
 	private static void createTabs() {
 		tabs = new JTabbedPane();
+		tabs.setFocusable(false);
 		communicationPanel = new CommunicationPanel();
 		settingsPanel = new SettingsPanel();
 		tabs.addTab("Communication", communicationPanel);
