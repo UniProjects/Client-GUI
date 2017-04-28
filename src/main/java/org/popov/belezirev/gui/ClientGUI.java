@@ -9,57 +9,60 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-public class ClientGUI {
-	private static final int HEIGHT = 450;
-	private static final int WIDTH = 750;
-	private static JFrame clientFrame;
-	private static JTabbedPane tabs;
-	private static CommunicationPanel communicationPanel;
-	private static SettingsPanel settingsPanel;
+import org.popov.belezirev.gui.builder.CommunicationPanelBuilder;
 
-	public static void main(String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				createFrame();
-				clientFrame.setVisible(true);
-				communicationPanel.setFocus();
-			}
-		});
-	}
+public class ClientGUI extends JFrame {
+    private static final long serialVersionUID = 1L;
 
-	private static void createFrame() {
-		setDefaultLookAndFeel();
-		clientFrame = new JFrame("Client");
-		clientFrame.setSize(WIDTH, HEIGHT);
-		centerFramePosition();
-		clientFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		createTabs();
-	}
+    private static final int HEIGHT = 450;
+    private static final int WIDTH = 750;
+    private static JFrame clientFrame;
+    private static JTabbedPane tabs;
+    private static CommunicationPanel communicationPanel;
+    private static SettingsPanel settingsPanel;
 
-	private static void createTabs() {
-		tabs = new JTabbedPane();
-		tabs.setFocusable(false);
-		communicationPanel = new CommunicationPanel();
-		settingsPanel = new SettingsPanel();
-		tabs.addTab("Communication", communicationPanel);
-		tabs.addTab("Settings", settingsPanel);
-		clientFrame.add(tabs);
-	}
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                createFrame();
+                clientFrame.setVisible(true);
+            }
+        });
+    }
 
-	private static void setDefaultLookAndFeel() {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-				| UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
-	}
+    private static void createFrame() {
+        setDefaultLookAndFeel();
+        clientFrame = new JFrame("Client");
+        clientFrame.setSize(WIDTH, HEIGHT);
+        centerFramePosition();
+        clientFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        createTabs();
+    }
 
-	private static void centerFramePosition() {
-		Dimension windowSizeDimension = Toolkit.getDefaultToolkit().getScreenSize();
-		int centerWindowXAxis = (int) (windowSizeDimension.getWidth() / 2 - clientFrame.getWidth() / 2);
-		int centerWindowYAxis = (int) (windowSizeDimension.getHeight() / 2 - clientFrame.getHeight() / 2);
-		clientFrame.setLocation(centerWindowXAxis, centerWindowYAxis);
-	}
+    private static void createTabs() {
+        tabs = new JTabbedPane();
+        tabs.setFocusable(false);
+        communicationPanel = new CommunicationPanelBuilder().setLayout().createTextArea().createTextLine().createSendButton(
+            "Send").createAreaScroller().build();
+        settingsPanel = new SettingsPanel();
+        tabs.addTab("Communication", communicationPanel);
+        tabs.addTab("Settings", settingsPanel);
+        clientFrame.add(tabs);
+    }
+
+    private static void setDefaultLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void centerFramePosition() {
+        Dimension windowSizeDimension = Toolkit.getDefaultToolkit().getScreenSize();
+        int centerWindowXAxis = (int) (windowSizeDimension.getWidth() / 2 - clientFrame.getWidth() / 2);
+        int centerWindowYAxis = (int) (windowSizeDimension.getHeight() / 2 - clientFrame.getHeight() / 2);
+        clientFrame.setLocation(centerWindowXAxis, centerWindowYAxis);
+    }
 }
