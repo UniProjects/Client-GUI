@@ -18,13 +18,10 @@ public class MainClientFrame extends JFrame {
 	private JTabbedPane tabs;
 	private CommunicationPanel communicationPanel;
 	private SettingsPanel settingsPanel;
-	// private Client client;
 
 	public MainClientFrame() {
 		createFrame();
 		setVisible(VISIBLE);
-		// client = new Client("localhost", 10513, "encho");
-		// client.start();
 	}
 
 	private void createFrame() {
@@ -51,6 +48,7 @@ public class MainClientFrame extends JFrame {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
+
 				JFrame clientMainFrame = new MainClientFrame();
 			}
 		});

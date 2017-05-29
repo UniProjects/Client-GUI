@@ -6,8 +6,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -16,14 +19,19 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
-import org.popov.belezirev.client.Client;
 import org.popov.belezirev.gui.client.ClientGui;
 
 public class CommunicationPanel extends JPanel {
+	private static final int DEFAULT_INPUT_AREA_WIDTH = 25;
+
+	private static final int DEFAULT_DISPLAY_LIST_WIDTH = 60;
+
+	private static final int OK_BUTTON = 0;
+
 	private static final long serialVersionUID = 1L;
 
 	private static final String DEFAULT_TEXTAREA_VALUE = "";
-	private static final String DEFAULT_DATE_FORMATER = "yyyy.MM.dd  HH:mm";
+	private static final String DEFAULT_DATE_FORMATER = "HH:mm";
 	private static final String USERS_PANEL_TITLE = "Online Users";
 	private static final int TOP_MARGIN_OFFSET = 0;
 	private static final int LEFT_MARGIN_OFFSET = 5;
@@ -38,6 +46,7 @@ public class CommunicationPanel extends JPanel {
 	private String currentTime;
 	private JScrollPane textAreaScroller;
 	private ClientGui client;
+	private DefaultListModel<String> model;
 
 	public CommunicationPanel() {
 		dataFormat = new SimpleDateFormat(DEFAULT_DATE_FORMATER);
@@ -45,11 +54,37 @@ public class CommunicationPanel extends JPanel {
 
 	public void createClient() {
 		client = new ClientGui("localhost", 10513, "test");
+		String username = getClientUserName();
 		try {
 			client.initClient();
-			client.sendMessage("test-username");
+			client.sendMessage(username);
+			addToDisplayList(username);
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	private void addToDisplayList(String username) {
+		model.addElement(username);
+	}
+
+	private String getClientUserName() {
+		String[] options = { "OK" };
+		JPanel panel = new JPanel();
+		JLabel label = new JLabel("Enter your username: ");
+		JTextField inputArea = new JTextField(DEFAULT_INPUT_AREA_WIDTH);
+		panel.add(label);
+		panel.add(inputArea);
+		while (true) {
+			int selectedOption = JOptionPane.showOptionDialog(null, panel, "SIGN-IN", JOptionPane.NO_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+			String username = inputArea.getText();
+			if (selectedOption == OK_BUTTON && username != null && !username.isEmpty()) {
+				return username;
+			}
+			if (selectedOption == JOptionPane.CLOSED_OPTION) {
+				System.exit(0);
+			}
 		}
 	}
 
@@ -78,13 +113,7 @@ public class CommunicationPanel extends JPanel {
 	private ActionListener getActionListener() {
 		return (e) -> {
 			String message = textLine.getText();
-			client.sendMessage(message);
-			// calendar = Calendar.getInstance();
-			// currentTime = dataFormat.format(calendar.getTime());
-			// if (!message.isEmpty()) {
-			// chatTextArea.append(currentTime + " | " + serverResponse +
-			// System.lineSeparator());
-			// }
+			client.sendMessage(currentTime + " | " + message);
 			textLine.setText(DEFAULT_TEXTAREA_VALUE);
 		};
 	}
@@ -109,15 +138,11 @@ public class CommunicationPanel extends JPanel {
 	}
 
 	private JList<String> createOnlineUsersDisplayList() {
-		// LISTS ONLINE USERS --- IN DEV!!!!! DEMO !!
-		String testUsers[] = { "Hello", "World", "123", "Bye-bye", "hqgq", "1f21f", "121f", "balbla", "f112ef21f2ff12",
-				"12", "1f2312", "12312f", "World", "123", "Bye-bye", "hqgq", "1f21f", "121f", "balbla",
-				"f112ef21f2ff12", "12", "1f2312", "12312f", "World", "123", "Bye-bye", "hqgq", "1f21f", "121f",
-				"balbla", "f112ef21f2ff12", "12", "1f2312", "12312f", "World", "123", "Bye-bye", "hqgq", "1f21f",
-				"121f", "balbla", "f112ef21f2ff12", "12", "1f2312", "12312f" };
-		//////
-		JList<String> onlineUsersDisplayList = new JList<>(testUsers);
-		onlineUsersDisplayList.setLayoutOrientation(JList.VERTICAL);
+		model = new DefaultListModel<>();
+		JList<String> onlineUsersDisplayList = new JList<>(model);
+		onlineUsersDisplayList.setFixedCellWidth(DEFAULT_DISPLAY_LIST_WIDTH);
+		model.addElement("hello");
+		model.addElement("hel2lo");
 		onlineUsersDisplayList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		onlineUsersDisplayList.setFocusable(false);
 		onlineUsersDisplayList.setBorder(
