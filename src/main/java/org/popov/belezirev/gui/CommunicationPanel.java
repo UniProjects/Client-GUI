@@ -2,6 +2,7 @@ package org.popov.belezirev.gui;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -14,6 +15,9 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+
+import org.popov.belezirev.client.Client;
+import org.popov.belezirev.gui.client.ClientGui;
 
 public class CommunicationPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -30,13 +34,23 @@ public class CommunicationPanel extends JPanel {
 	private JTextField textLine;
 	private JButton sendButton;
 	private SimpleDateFormat dataFormat;
-	private String message;
 	private Calendar calendar;
 	private String currentTime;
 	private JScrollPane textAreaScroller;
+	private ClientGui client;
 
 	public CommunicationPanel() {
 		dataFormat = new SimpleDateFormat(DEFAULT_DATE_FORMATER);
+	}
+
+	public void createClient() {
+		client = new ClientGui("localhost", 10513, "test");
+		try {
+			client.initClient();
+			client.sendMessage("test-username");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void addPanels() {
@@ -51,16 +65,26 @@ public class CommunicationPanel extends JPanel {
 		ActionListener sendActionListener = getActionListener();
 		sendButton.addActionListener(sendActionListener);
 		textLine.addActionListener(sendActionListener);
+		new Thread(() -> {
+			while (true) {
+				String readMessage = client.readMessage();
+				if (readMessage != null && !readMessage.isEmpty()) {
+					chatTextArea.append(readMessage + System.lineSeparator());
+				}
+			}
+		}).start();
 	}
 
 	private ActionListener getActionListener() {
 		return (e) -> {
-			message = textLine.getText();
-			calendar = Calendar.getInstance();
-			currentTime = dataFormat.format(calendar.getTime());
-			if (!message.isEmpty()) {
-				chatTextArea.append(currentTime + " | " + message + System.lineSeparator());
-			}
+			String message = textLine.getText();
+			client.sendMessage(message);
+			// calendar = Calendar.getInstance();
+			// currentTime = dataFormat.format(calendar.getTime());
+			// if (!message.isEmpty()) {
+			// chatTextArea.append(currentTime + " | " + serverResponse +
+			// System.lineSeparator());
+			// }
 			textLine.setText(DEFAULT_TEXTAREA_VALUE);
 		};
 	}

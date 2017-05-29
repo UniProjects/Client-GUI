@@ -55,6 +55,7 @@ public class CommunicationPanelBuilder {
 
     public CommunicationPanel build() {
         communicationPanel.addPanels();
+        communicationPanel.createClient();
         communicationPanel.createListener();
         return communicationPanel;
     }
