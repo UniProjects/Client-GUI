@@ -20,6 +20,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 import org.popov.belezirev.gui.client.ClientGui;
+import org.popov.belezirev.gui.client.MessageProcessor;
 
 public class CommunicationPanel extends JPanel {
 	private static final int DEFAULT_INPUT_AREA_WIDTH = 25;
@@ -53,11 +54,12 @@ public class CommunicationPanel extends JPanel {
 	}
 
 	public void createClient() {
-		client = new ClientGui("localhost", 10513, "test");
+		client = new ClientGui("localhost", 10513, new MessageProcessor(chatTextArea));
 		String username = getClientUserName();
 		try {
 			client.initClient();
 			client.sendMessage(username);
+			client.readMessageAsynchronously();
 			addToDisplayList(username);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -100,20 +102,13 @@ public class CommunicationPanel extends JPanel {
 		ActionListener sendActionListener = getActionListener();
 		sendButton.addActionListener(sendActionListener);
 		textLine.addActionListener(sendActionListener);
-		new Thread(() -> {
-			while (true) {
-				String readMessage = client.readMessage();
-				if (readMessage != null && !readMessage.isEmpty()) {
-					chatTextArea.append(readMessage + System.lineSeparator());
-				}
-			}
-		}).start();
+		
 	}
 
 	private ActionListener getActionListener() {
 		return (e) -> {
 			String message = textLine.getText();
-			client.sendMessage(currentTime + " | " + message);
+			client.sendMessage(message);
 			textLine.setText(DEFAULT_TEXTAREA_VALUE);
 		};
 	}
@@ -141,8 +136,6 @@ public class CommunicationPanel extends JPanel {
 		model = new DefaultListModel<>();
 		JList<String> onlineUsersDisplayList = new JList<>(model);
 		onlineUsersDisplayList.setFixedCellWidth(DEFAULT_DISPLAY_LIST_WIDTH);
-		model.addElement("hello");
-		model.addElement("hel2lo");
 		onlineUsersDisplayList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		onlineUsersDisplayList.setFocusable(false);
 		onlineUsersDisplayList.setBorder(

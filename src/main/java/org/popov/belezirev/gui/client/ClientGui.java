@@ -12,16 +12,17 @@ public class ClientGui implements AutoCloseable {
 
 	private String hostName;
 	private int port;
-	private String userName;
 
 	private Socket clientSocket;
 	private PrintWriter serverWriter;
 	private BufferedReader serverReader;
 
-	public ClientGui(String hostName, int port, String userName) {
+	private MessageProcessor processor;
+	
+	public ClientGui(String hostName, int port, MessageProcessor processor) {
 		this.hostName = hostName;
 		this.port = port;
-		this.userName = userName;
+		this.processor = processor;
 	}
 
 	public void initClient() throws UnknownHostException, IOException {
@@ -41,9 +42,17 @@ public class ClientGui implements AutoCloseable {
 		try {
 			return serverReader.readLine();
 		} catch (IOException e) {
-			//TODO: throw the appropiate exception
 			throw new IllegalArgumentException(e);
 		}
+	}
+	
+	public void readMessageAsynchronously(){
+		new Thread(() -> {
+			while (true) {
+				String readMessage = readMessage();
+				processor.processMessage(readMessage);
+			}
+		}).start();
 	}
 
 	@Override
