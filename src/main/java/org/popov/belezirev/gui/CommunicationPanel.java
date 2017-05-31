@@ -3,8 +3,9 @@ package org.popov.belezirev.gui;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -32,7 +33,6 @@ public class CommunicationPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String DEFAULT_TEXTAREA_VALUE = "";
-	private static final String DEFAULT_DATE_FORMATER = "HH:mm";
 	private static final String USERS_PANEL_TITLE = "Online Users";
 	private static final int TOP_MARGIN_OFFSET = 0;
 	private static final int LEFT_MARGIN_OFFSET = 5;
@@ -42,15 +42,11 @@ public class CommunicationPanel extends JPanel {
 	private JTextArea chatTextArea;
 	private JTextField textLine;
 	private JButton sendButton;
-	private SimpleDateFormat dataFormat;
-	private Calendar calendar;
-	private String currentTime;
 	private JScrollPane textAreaScroller;
 	private ClientGui client;
 	private DefaultListModel<String> model;
 
 	public CommunicationPanel() {
-		dataFormat = new SimpleDateFormat(DEFAULT_DATE_FORMATER);
 	}
 
 	public void createClient() {
@@ -59,15 +55,24 @@ public class CommunicationPanel extends JPanel {
 		try {
 			client.initClient();
 			client.sendMessage(username);
+			client.sendMessage("gui");
+			String userNamesJoined = client.readMessageSynchronously();
+			List<String> userNames = parse(userNamesJoined);
+			addToDisplayList(userNames);
 			client.readMessageAsynchronously();
-			addToDisplayList(username);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void addToDisplayList(String username) {
-		model.addElement(username);
+	private List<String> parse(String userNamesJoined) {
+		return Arrays.asList(userNamesJoined.split(","));
+	}
+
+	private void addToDisplayList(List<String> usernames) {
+		for (String userName : usernames) {
+			model.addElement(userName);
+		}
 	}
 
 	private String getClientUserName() {
@@ -102,7 +107,7 @@ public class CommunicationPanel extends JPanel {
 		ActionListener sendActionListener = getActionListener();
 		sendButton.addActionListener(sendActionListener);
 		textLine.addActionListener(sendActionListener);
-		
+
 	}
 
 	private ActionListener getActionListener() {

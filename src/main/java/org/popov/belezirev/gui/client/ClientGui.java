@@ -38,7 +38,7 @@ public class ClientGui implements AutoCloseable {
 		}
 	}
 
-	public String readMessage() {
+	public String readMessageSynchronously() {
 		try {
 			return serverReader.readLine();
 		} catch (IOException e) {
@@ -49,7 +49,7 @@ public class ClientGui implements AutoCloseable {
 	public void readMessageAsynchronously(){
 		new Thread(() -> {
 			while (true) {
-				String readMessage = readMessage();
+				String readMessage = readMessageSynchronously();
 				processor.processMessage(readMessage);
 			}
 		}).start();

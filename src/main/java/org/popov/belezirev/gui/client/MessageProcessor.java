@@ -8,12 +8,11 @@ public class MessageProcessor {
 	public MessageProcessor(JTextArea chatTextArea) {
 		this.chatTextArea = chatTextArea;
 	}
-	
-	public void processMessage(String readMessage){
+
+	public void processMessage(String readMessage) {
 		if (readMessage != null && !readMessage.isEmpty()) {
 			chatTextArea.append(readMessage + System.lineSeparator());
 		}
 	}
-	
-	
+
 }
