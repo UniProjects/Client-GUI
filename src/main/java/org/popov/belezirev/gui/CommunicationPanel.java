@@ -1,18 +1,21 @@
 package org.popov.belezirev.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -20,10 +23,15 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
+import org.popov.belezirev.client.Credentials;
 import org.popov.belezirev.gui.client.ClientGui;
 import org.popov.belezirev.gui.client.MessageProcessor;
 
 public class CommunicationPanel extends JPanel {
+	private static final int SIGN_IN_PANEL_COMPONETS_SEPARATOR_WIDTH = 0;
+
+	private static final int SIGN_IN_PANEL_COMPONETS_SEPARATOR_HEIGHT = 15;
+
 	private static final int DEFAULT_INPUT_AREA_WIDTH = 25;
 
 	private static final int DEFAULT_DISPLAY_LIST_WIDTH = 60;
@@ -45,16 +53,18 @@ public class CommunicationPanel extends JPanel {
 	private JScrollPane textAreaScroller;
 	private ClientGui client;
 	private DefaultListModel<String> model;
+	private Credentials<String, String> credentials;
 
 	public CommunicationPanel() {
 	}
 
 	public void createClient() {
 		client = new ClientGui("localhost", 10513, new MessageProcessor(chatTextArea));
-		String username = getClientUserName();
+		credentials = getClientCredentials();
 		try {
 			client.initClient();
-			client.sendMessage(username);
+			client.sendMessage(credentials.getUsername());
+			client.sendMessage(credentials.getPassword());
 			client.sendMessage("gui");
 			String userNamesJoined = client.readMessageSynchronously();
 			List<String> userNames = parse(userNamesJoined);
@@ -75,24 +85,41 @@ public class CommunicationPanel extends JPanel {
 		}
 	}
 
-	private String getClientUserName() {
-		String[] options = { "OK" };
-		JPanel panel = new JPanel();
-		JLabel label = new JLabel("Enter your username: ");
-		JTextField inputArea = new JTextField(DEFAULT_INPUT_AREA_WIDTH);
-		panel.add(label);
-		panel.add(inputArea);
+	private Credentials<String, String> getClientCredentials() {
+		final String[] options = { "SIGN-IN" };
+		final JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		final JLabel usernameAreaLabel = new JLabel("Enter your username: ");
+		final JLabel passwordAreaLabel = new JLabel("Enter your password: ");
+		final JTextField usernameArea = new JTextField(DEFAULT_INPUT_AREA_WIDTH);
+		final JPasswordField passwordArea = new JPasswordField(DEFAULT_DISPLAY_LIST_WIDTH);
+		panel.add(usernameAreaLabel);
+		panel.add(usernameArea);
+		panel.add(Box.createRigidArea(
+				new Dimension(SIGN_IN_PANEL_COMPONETS_SEPARATOR_WIDTH, SIGN_IN_PANEL_COMPONETS_SEPARATOR_HEIGHT)));
+		panel.add(passwordAreaLabel);
+		panel.add(passwordArea);
 		while (true) {
-			int selectedOption = JOptionPane.showOptionDialog(null, panel, "SIGN-IN", JOptionPane.NO_OPTION,
+			final int selectedOption = JOptionPane.showOptionDialog(null, panel, "SIGN-IN", JOptionPane.NO_OPTION,
 					JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
-			String username = inputArea.getText();
-			if (selectedOption == OK_BUTTON && username != null && !username.isEmpty()) {
-				return username;
+			final String username = usernameArea.getText();
+			final String password = passwordArea.getPassword().toString();
+			if (selectedOption == OK_BUTTON && isCredentialValid(username) && isCredentialValid(password)
+					&& isUsernameAcknowledged(username)) {
+				return new Credentials<>(username, password);
 			}
 			if (selectedOption == JOptionPane.CLOSED_OPTION) {
 				System.exit(0);
 			}
 		}
+	}
+
+	private Boolean isUsernameAcknowledged(final String username) {
+		return "valid_username".equals(client.readMessageSynchronously());
+	}
+
+	private Boolean isCredentialValid(final String credential) {
+		return credential != null && !credential.isEmpty() ? true : false;
 	}
 
 	public void addPanels() {
