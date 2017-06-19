@@ -53,18 +53,26 @@ public class CommunicationPanel extends JPanel {
 	private JScrollPane textAreaScroller;
 	private ClientGui client;
 	private DefaultListModel<String> model;
-	private Credentials<String, String> credentials;
 
 	public CommunicationPanel() {
 	}
 
 	public void createClient() {
-		client = new ClientGui("localhost", 10513, new MessageProcessor(chatTextArea));
-		credentials = getClientCredentials();
 		try {
-			client.initClient();
-			client.sendMessage(credentials.getUsername());
-			client.sendMessage(credentials.getPassword());
+			while (true) {
+				client = new ClientGui("localhost", 10513, new MessageProcessor(chatTextArea));
+				client.initClient();
+				Credentials<String, String> credentials = getClientCredentials();
+				if (credentials == null) {
+					client.close();
+					continue;
+				}
+				client.sendMessage(credentials.getUsername());
+				client.sendMessage(credentials.getPassword());
+				if (isUsernameAcknowledged()) {
+					break;
+				}
+			}
 			client.sendMessage("gui");
 			String userNamesJoined = client.readMessageSynchronously();
 			List<String> userNames = parse(userNamesJoined);
@@ -99,22 +107,20 @@ public class CommunicationPanel extends JPanel {
 				new Dimension(SIGN_IN_PANEL_COMPONETS_SEPARATOR_WIDTH, SIGN_IN_PANEL_COMPONETS_SEPARATOR_HEIGHT)));
 		panel.add(passwordAreaLabel);
 		panel.add(passwordArea);
-		while (true) {
-			final int selectedOption = JOptionPane.showOptionDialog(null, panel, "SIGN-IN", JOptionPane.NO_OPTION,
-					JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
-			final String username = usernameArea.getText();
-			final String password = passwordArea.getPassword().toString();
-			if (selectedOption == OK_BUTTON && isCredentialValid(username) && isCredentialValid(password)
-					&& isUsernameAcknowledged(username)) {
-				return new Credentials<>(username, password);
-			}
-			if (selectedOption == JOptionPane.CLOSED_OPTION) {
-				System.exit(0);
-			}
+		final int selectedOption = JOptionPane.showOptionDialog(null, panel, "SIGN-IN", JOptionPane.NO_OPTION,
+				JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+		final String username = usernameArea.getText();
+		final String password = passwordArea.getPassword().toString();
+		if (selectedOption == OK_BUTTON && isCredentialValid(username) && isCredentialValid(password)) {
+			return new Credentials<>(username, password);
 		}
+		if (selectedOption == JOptionPane.CLOSED_OPTION) {
+			System.exit(0);
+		}
+		return null;
 	}
 
-	private Boolean isUsernameAcknowledged(final String username) {
+	private Boolean isUsernameAcknowledged() {
 		return "valid_username".equals(client.readMessageSynchronously());
 	}
 
